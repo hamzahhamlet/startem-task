@@ -1,10 +1,272 @@
 import React, { Component } from "react";
+import { connect } from "react-redux";
+import {
+	dashboardCreateProduct,
+	dashboardUpdateProduct,
+	dashboardDeleteProduct,
+} from "../store/actions/index";
+import { v4 as uuidv4 } from "uuid";
+// Components
 import Sidebar from "../components/Sidebar";
+import UpdateModal from "../components/UpdateModal";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableContainer from "@material-ui/core/TableContainer";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import Paper from "@material-ui/core/Paper";
+import Button from "@material-ui/core/Button";
+import TextField from "@material-ui/core/TextField";
+import SearchBar from "../components/SearchBar";
 
 class Tables extends Component {
-	state = {};
+	state = {
+		isAddOpen: false,
+		isUpdateOpen: false,
+		search: "",
+		add: {
+			name: "",
+			brand: "",
+			quantity: "",
+			price: "",
+		},
+		update: {
+			id: "",
+			name: "",
+			brand: "",
+			quantity: "",
+			price: "",
+		},
+	};
+
+	toggleAddProduct = () => {
+		this.setState({ isAddOpen: !this.state.isAddOpen });
+	};
+
+	toggleUpdateModal = () => {
+		this.setState({ isUpdateOpen: !this.state.isUpdateOpen });
+	};
+
+	inputChangeHandler = (action, e) => {
+		this.setState({
+			...this.state,
+			[action]: {
+				...this.state[action],
+				[e.target.name]: e.target.value,
+			},
+		});
+	};
+
+	onCreateHandler = () => {
+		const { name, brand, quantity, price } = this.state.add;
+
+		if (name && brand && quantity && price) {
+			const intQuantity = Number.parseFloat(quantity);
+			const intPrice = Number.parseFloat(price);
+
+			if (intQuantity > 0 && intPrice > 0) {
+				this.setState({
+					...this.state,
+					isAddOpen: false,
+					add: {
+						name: "",
+						brand: "",
+						quantity: "",
+						price: "",
+					},
+				});
+				this.props.dashboardCreateProduct({
+					id: uuidv4(),
+					name,
+					brand,
+					quantity,
+					price,
+				});
+				alert("New product added successfully.");
+			} else {
+				alert(
+					"Quantity and Price fields should have a value greater then 0"
+				);
+			}
+		} else {
+			alert("Invalid data for fields.");
+		}
+	};
+
+	updateClickHandler = (id) => {
+		const product = this.props.products.find((record) => record.id === id);
+
+		if (product) {
+			this.setState({
+				...this.state,
+				isUpdateOpen: true,
+				update: {
+					id: product.id,
+					name: product.name,
+					brand: product.brand,
+					quantity: product.quantity,
+					price: product.price,
+				},
+			});
+		} else {
+			alert("Unable to find product.");
+		}
+	};
+
+	onUpdateHandler = () => {
+		const { id, name, brand, quantity, price } = this.state.update;
+
+		if (id && name && brand && quantity && price) {
+			const intQuantity = Number.parseFloat(quantity);
+			const intPrice = Number.parseFloat(price);
+
+			if (intQuantity > 0 && intPrice > 0) {
+				this.setState({
+					...this.state,
+					isUpdateOpen: false,
+					update: {
+						id: "",
+						name: "",
+						brand: "",
+						quantity: "",
+						price: "",
+					},
+				});
+				this.props.dashboardUpdateProduct({
+					id,
+					name,
+					brand,
+					quantity,
+					price,
+				});
+				alert("Product updated successfully.");
+			} else {
+				alert(
+					"Quantity and Price fields should have a value greater then 0"
+				);
+			}
+		} else {
+			alert("Invalid data for fields.");
+		}
+	};
+
+	renderAddProductRow = () => (
+		<TableRow>
+			<TableCell component="th" scope="row">
+				<TextField
+					id="outlined-basic"
+					variant="outlined"
+					type="text"
+					label="Name"
+					name="name"
+					value={this.state.add.name}
+					onChange={(e) => {
+						e.persist();
+						this.inputChangeHandler("add", e);
+					}}
+				/>
+			</TableCell>
+			<TableCell align="center">
+				<TextField
+					id="outlined-basic"
+					variant="outlined"
+					type="text"
+					label="Brand"
+					name="brand"
+					value={this.state.add.brand}
+					onChange={(e) => {
+						e.persist();
+						this.inputChangeHandler("add", e);
+					}}
+				/>
+			</TableCell>
+			<TableCell align="center">
+				<TextField
+					id="outlined-basic"
+					variant="outlined"
+					label="Quantity"
+					type="number"
+					name="quantity"
+					value={this.state.add.quantity}
+					onChange={(e) => {
+						e.persist();
+						this.inputChangeHandler("add", e);
+					}}
+				/>
+			</TableCell>
+			<TableCell align="center">
+				<TextField
+					id="outlined-basic"
+					variant="outlined"
+					label="Price"
+					type="number"
+					name="price"
+					value={this.state.add.price}
+					onChange={(e) => {
+						e.persist();
+						this.inputChangeHandler("add", e);
+					}}
+				/>
+			</TableCell>
+			<TableCell align="center">
+				<Button
+					variant="contained"
+					color="primary"
+					onClick={this.onCreateHandler}
+				>
+					Create
+				</Button>
+			</TableCell>
+		</TableRow>
+	);
+
+	renderProductRows = () => {
+		const { search } = this.state;
+		const rows = [...this.props.products];
+
+		return rows.map((row) => {
+			return row.name.includes(search) ? (
+				<TableRow key={row.id}>
+					<TableCell component="th" scope="row">
+						{row.name}
+					</TableCell>
+					<TableCell align="center">{row.brand}</TableCell>
+					<TableCell align="center">{row.quantity}</TableCell>
+					<TableCell align="center">${row.price}</TableCell>
+					<TableCell align="right">
+						<Button
+							className="mr-4"
+							variant="contained"
+							color="primary"
+							onClick={() => this.updateClickHandler(row.id)}
+						>
+							Update
+						</Button>
+						<Button
+							variant="contained"
+							color="primary"
+							onClick={() =>
+								this.props.dashboardDeleteProduct(row.id)
+							}
+						>
+							Delete
+						</Button>
+					</TableCell>
+				</TableRow>
+			) : null;
+		});
+	};
 
 	render() {
+		const { isAddOpen } = this.state;
+
+		const headerStyle = {
+			display: "flex",
+			justifyContent: "space-between",
+			alignItems: "center",
+		};
+
 		return (
 			<div class="wrapper">
 				<Sidebar for="tables" />
@@ -136,190 +398,86 @@ class Tables extends Component {
 							<div class="row">
 								<div class="col-md-12">
 									<div class="card">
-										<div class="card-header card-header-primary">
-											<h4 class="card-title">
-												Simple Table
-											</h4>
-											<p class="card-category">
-												Here is a subtitle for this
-												table
-											</p>
-										</div>
-										<div class="card-body">
-											<div class="table-responsive">
-												<table class="table">
-													<thead class="text-primary">
-														<th>ID</th>
-														<th>Name</th>
-														<th>Country</th>
-														<th>City</th>
-														<th>Salary</th>
-													</thead>
-													<tbody>
-														<tr>
-															<td>1</td>
-															<td>Dakota Rice</td>
-															<td>Niger</td>
-															<td>
-																Oud-Turnhout
-															</td>
-															<td class="text-primary">
-																$36,738
-															</td>
-														</tr>
-														<tr>
-															<td>2</td>
-															<td>
-																Minerva Hooper
-															</td>
-															<td>Curaçao</td>
-															<td>Sinaai-Waas</td>
-															<td class="text-primary">
-																$23,789
-															</td>
-														</tr>
-														<tr>
-															<td>3</td>
-															<td>
-																Sage Rodriguez
-															</td>
-															<td>Netherlands</td>
-															<td>Baileux</td>
-															<td class="text-primary">
-																$56,142
-															</td>
-														</tr>
-														<tr>
-															<td>4</td>
-															<td>
-																Philip Chaney
-															</td>
-															<td>
-																Korea, South
-															</td>
-															<td>
-																Overland Park
-															</td>
-															<td class="text-primary">
-																$38,735
-															</td>
-														</tr>
-														<tr>
-															<td>5</td>
-															<td>
-																Doris Greene
-															</td>
-															<td>Malawi</td>
-															<td>
-																Feldkirchen in
-																Kärnten
-															</td>
-															<td class="text-primary">
-																$63,542
-															</td>
-														</tr>
-														<tr>
-															<td>6</td>
-															<td>
-																Mason Porter
-															</td>
-															<td>Chile</td>
-															<td>Gloucester</td>
-															<td class="text-primary">
-																$78,615
-															</td>
-														</tr>
-													</tbody>
-												</table>
+										<div
+											class="card-header card-header-primary"
+											style={headerStyle}
+										>
+											<h4 class="card-title">Products</h4>
+											<div style={headerStyle}>
+												<span className="mr-3">
+													<SearchBar
+														input={
+															this.state.search
+														}
+														onChange={(e) =>
+															this.setState({
+																[e.target.name]:
+																	e.target
+																		.value,
+															})
+														}
+													/>
+												</span>
+												{!isAddOpen ? (
+													<Button
+														variant="contained"
+														color="primary"
+														onClick={
+															this
+																.toggleAddProduct
+														}
+													>
+														Add
+													</Button>
+												) : (
+													<Button
+														variant="contained"
+														color="primary"
+														onClick={
+															this
+																.toggleAddProduct
+														}
+													>
+														Close
+													</Button>
+												)}
 											</div>
 										</div>
-									</div>
-								</div>
-								<div class="col-md-12">
-									<div class="card card-plain">
-										<div class="card-header card-header-primary">
-											<h4 class="card-title mt-0">
-												Table on Plain Background
-											</h4>
-											<p class="card-category">
-												Here is a subtitle for this
-												table
-											</p>
-										</div>
-										<div class="card-body">
-											<div class="table-responsive">
-												<table class="table table-hover">
-													<thead class="">
-														<th>ID</th>
-														<th>Name</th>
-														<th>Country</th>
-														<th>City</th>
-														<th>Salary</th>
-													</thead>
-													<tbody>
-														<tr>
-															<td>1</td>
-															<td>Dakota Rice</td>
-															<td>Niger</td>
-															<td>
-																Oud-Turnhout
-															</td>
-															<td>$36,738</td>
-														</tr>
-														<tr>
-															<td>2</td>
-															<td>
-																Minerva Hooper
-															</td>
-															<td>Curaçao</td>
-															<td>Sinaai-Waas</td>
-															<td>$23,789</td>
-														</tr>
-														<tr>
-															<td>3</td>
-															<td>
-																Sage Rodriguez
-															</td>
-															<td>Netherlands</td>
-															<td>Baileux</td>
-															<td>$56,142</td>
-														</tr>
-														<tr>
-															<td>4</td>
-															<td>
-																Philip Chaney
-															</td>
-															<td>
-																Korea, South
-															</td>
-															<td>
-																Overland Park
-															</td>
-															<td>$38,735</td>
-														</tr>
-														<tr>
-															<td>5</td>
-															<td>
-																Doris Greene
-															</td>
-															<td>Malawi</td>
-															<td>
-																Feldkirchen in
-																Kärnten
-															</td>
-															<td>$63,542</td>
-														</tr>
-														<tr>
-															<td>6</td>
-															<td>
-																Mason Porter
-															</td>
-															<td>Chile</td>
-															<td>Gloucester</td>
-															<td>$78,615</td>
-														</tr>
-													</tbody>
-												</table>
+										<div className="card-body">
+											<div className="table-responsive">
+												<TableContainer
+													component={Paper}
+												>
+													<Table aria-label="simple table">
+														<TableHead>
+															<TableRow>
+																<TableCell>
+																	Name
+																</TableCell>
+																<TableCell align="center">
+																	Brand
+																</TableCell>
+																<TableCell align="center">
+																	Quantity
+																</TableCell>
+																<TableCell align="center">
+																	Price
+																</TableCell>
+																<TableCell align="right">
+																	<span className="mr-5">
+																		Actions
+																	</span>
+																</TableCell>
+															</TableRow>
+														</TableHead>
+														<TableBody>
+															{isAddOpen
+																? this.renderAddProductRow()
+																: null}
+															{this.renderProductRows()}
+														</TableBody>
+													</Table>
+												</TableContainer>
 											</div>
 										</div>
 									</div>
@@ -371,9 +529,32 @@ class Tables extends Component {
 						</div>
 					</footer>
 				</div>
+				<UpdateModal
+					show={this.state.isUpdateOpen}
+					toggleModal={this.toggleUpdateModal}
+					inputs={this.state.update}
+					inputChangeHandler={this.inputChangeHandler}
+					onConfirm={this.onUpdateHandler}
+				/>
 			</div>
 		);
 	}
 }
 
-export default Tables;
+function mapStateToProps(state) {
+	return {
+		products: state.dashboard.products,
+	};
+}
+
+function mapDispatchToProps(dispatch) {
+	return {
+		dashboardCreateProduct: (product) =>
+			dispatch(dashboardCreateProduct(product)),
+		dashboardUpdateProduct: (product) =>
+			dispatch(dashboardUpdateProduct(product)),
+		dashboardDeleteProduct: (id) => dispatch(dashboardDeleteProduct(id)),
+	};
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Tables);
