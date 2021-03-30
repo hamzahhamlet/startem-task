@@ -10,10 +10,10 @@ const persistConfig = {
 	storage,
 };
 
-const persistReducer = persistReducer(persistConfig, rootReducer);
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const configureStore = () => {
-	const store = createStore(persistReducer, composeWithDevTools());
+	const store = createStore(persistedReducer, composeWithDevTools());
 	const persistor = persistStore(store);
 	return { store, persistor };
 };
