@@ -1,5 +1,7 @@
 import React from "react";
+import { connect } from "react-redux";
 import { Link } from "react-router-dom";
+import { authLogout } from "../store/actions";
 
 const Sidebar = (props) => {
 	return (
@@ -101,10 +103,21 @@ const Sidebar = (props) => {
 							<p>Notifications</p>
 						</Link>
 					</li>
+					<li class="nav-item" onClick={props.authLogout}>
+						<Link class="nav-link" to="/notifications">
+							<p>Logout</p>
+						</Link>
+					</li>
 				</ul>
 			</div>
 		</div>
 	);
 };
 
-export default Sidebar;
+function mapDispatchToProps(dispatch) {
+	return {
+		authLogout: () => dispatch(authLogout()),
+	};
+}
+
+export default connect(null, mapDispatchToProps)(Sidebar);

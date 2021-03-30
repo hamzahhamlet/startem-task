@@ -1,15 +1,8 @@
 import {
-	DASHBOARD_LOAD_PRODUCTS,
 	DASHBOARD_CREATE_PRODUCT,
 	DASHBOARD_UPDATE_PRODUCT,
 	DASHBOARD_DELETE_PRODUCT,
 } from "./actionTypes";
-
-export const dashboardLoadProducts = () => {
-	return {
-		type: DASHBOARD_LOAD_PRODUCTS,
-	};
-};
 
 export const dashboardCreateProduct = (product) => {
 	return {
