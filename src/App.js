@@ -1,25 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+// Stylesheets
+import "./assets/css/material-dashboard.css?v=2.1.2";
+import "./assets/demo/demo.css";
+
+import { BrowserRouter, Switch, Route } from "react-router-dom";
+
+// Pages
+import Dashboard from "./pages/Dashboard";
+import User from "./pages/User";
+import Tables from "./pages/Tables";
+import Typography from "./pages/Typography";
+import Icons from "./pages/Icons";
+import Map from "./pages/Map";
+import Notifications from "./pages/Notifications";
+
+const App = () => {
+	return (
+		<BrowserRouter>
+			<Switch>
+				<Route exact path="/dashboard" component={Dashboard} />
+				<Route exact path="/user" component={User} />
+				<Route exact path="/tables" component={Tables} />
+				<Route exact path="/typography" component={Typography} />
+				<Route exact path="/icons" component={Icons} />
+				<Route exact path="/map" component={Map} />
+				<Route exact path="/notifications" component={Notifications} />
+				<Route exact path="/" render={(props) => <h1>Home Page</h1>} />
+			</Switch>
+		</BrowserRouter>
+	);
+};
 
 export default App;
